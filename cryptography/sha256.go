@@ -16,30 +16,32 @@ var (
 		0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2,
 	}
 
-	sha256InitialHash = []uint32{
-		0x6a09e667,
-		0xbb67ae85,
-		0x3c6ef372,
-		0xa54ff53a,
-		0x510e527f,
-		0x9b05688c,
-		0x1f83d9ab,
-		0x5be0cd19,
-	}
-
 	block_size_in_bytes = 64
 	schedule_size       = 64
 )
 
-type Sha256 struct{}
+type Sha256 struct {
+	initialHash []uint32
+}
 
 func NewSha256() *Sha256 {
-	return &Sha256{}
+	return &Sha256{
+		initialHash: []uint32{
+			0x6a09e667,
+			0xbb67ae85,
+			0x3c6ef372,
+			0xa54ff53a,
+			0x510e527f,
+			0x9b05688c,
+			0x1f83d9ab,
+			0x5be0cd19,
+		},
+	}
 }
 
 func (hash *Sha256) Compute(data []byte) []byte {
 	source := hash.pad(data)
-	hashValue := append(make([]uint32, 0), sha256InitialHash...)
+	hashValue := append(make([]uint32, 0), hash.initialHash...)
 	hash.computeHash(source, hashValue)
 	return hash.uint32ArrayToByteArray(hashValue)
 }
