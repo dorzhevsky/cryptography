@@ -1,0 +1,75 @@
+package cryptography
+
+type sha224 struct {
+	sha2[uint32]
+}
+
+var _ Hash = (*sha224)(nil)
+var _ sha2Impl[uint32] = (*sha224)(nil)
+
+func NewSha224() Hash {
+	inner := newSha2[uint32]()
+	inner.blockSizeInBytes = 64
+	inner.rounds = 64
+	inner.initialHash = []uint32{
+		0xC1059ED8,
+		0x367CD507,
+		0x3070DD17,
+		0xF70E5939,
+		0xFFC00B31,
+		0x68581511,
+		0x64F98FA7,
+		0xBEFA4FA4,
+	}
+	inner.constants = []uint32{
+		0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
+		0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
+		0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+		0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
+		0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
+		0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+		0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
+		0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2,
+	}
+
+	hash := &sha224{sha2: *inner}
+	hash.sha2.impl = hash
+	return hash
+}
+
+func (sha224 *sha224) Compute(data []byte) []byte {
+	hash := sha224.sha2.Compute(data)
+	return hash[:28]
+}
+
+func (hash *sha224) S0(x uint32) uint32 {
+	return hash.rotr(x, 7) ^ hash.rotr(x, 18) ^ hash.shr(x, 3)
+}
+
+func (hash *sha224) S1(x uint32) uint32 {
+	return hash.rotr(x, 17) ^ hash.rotr(x, 19) ^ hash.shr(x, 10)
+}
+
+func (hash *sha224) Ch(x, y, z uint32) uint32 {
+	return (x & y) ^ ((^x) & z)
+}
+
+func (hash *sha224) Maj(x, y, z uint32) uint32 {
+	return (x & y) ^ (x & z) ^ (y & z)
+}
+
+func (hash *sha224) Sigma0(x uint32) uint32 {
+	return hash.rotr(x, 2) ^ hash.rotr(x, 13) ^ hash.rotr(x, 22)
+}
+
+func (hash *sha224) Sigma1(x uint32) uint32 {
+	return hash.rotr(x, 6) ^ hash.rotr(x, 11) ^ hash.rotr(x, 25)
+}
+
+func (hash *sha224) rotr(x uint32, n int) uint32 {
+	return (x >> n) | (x << (32 - n))
+}
+
+func (hash *sha224) shr(x uint32, n int) uint32 {
+	return x >> n
+}
